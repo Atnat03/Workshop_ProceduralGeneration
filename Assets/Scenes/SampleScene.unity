@@ -582,7 +582,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!64 &641523282
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -742,7 +742,7 @@ GameObject:
   m_Icon: {fileID: -964228994112308473, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1578147377
 Transform:
   m_ObjectHideFlags: 0
@@ -770,40 +770,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 51180c38a2af449793cba827627cf148, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DefaultNamespace.TreeGenerator
-  axiom: FB
-  iterations: 6
-  lenght: {x: 0.5, y: 1}
-  angleMin: 20
-  angleMax: 40
-  angleYMin: 80
-  angleYMax: 100
-  treeMaterial: {fileID: 2100000, guid: 67b4a55c0b0520c40b2e561be3833bf8, type: 2}
-  _baseRadius: 0.75
-  _radiusRatio: 0.5
-  _branchRules:
-  - Rule: 70
-    BranchRulesProbabilityList:
-    - Rule: FF
-      Probability: 50
-    - Rule: F
-      Probability: 50
-  - Rule: 66
-    BranchRulesProbabilityList:
-    - Rule: '[llFB][rFB]'
-      Probability: 33
-    - Rule: '[lFB][rrFB]'
-      Probability: 33
-    - Rule: '[llFB][rFB][FB]'
-      Probability: 20
-    - Rule: '[lFB][rrFB][FB]'
-      Probability: 20
-    - Rule: '[rFB]'
-      Probability: 10
-    - Rule: '[rFB]'
-      Probability: 10
-  _leafPrefab: {fileID: 3868080352369227895, guid: 9a18fded79c867c4398e705dd6e72b07, type: 3}
-  leafScale: 1
-  leavesPerBranch: 15
+  _currentTree: {fileID: 0}
+  radiusList: []
+  currentRadius: 0
+  _leafList: []
+  Data: {fileID: 0}
 --- !u!1 &1734207070
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using DefaultNamespace;
 using MyPrint;
 using Unity.Mathematics;
 using UnityEngine;
@@ -12,16 +13,16 @@ namespace TreeGeneration
     {
         [SerializeField] private string axiom;
         [SerializeField] private int iterations;
-        Stack<TreeData> treeStack = new Stack<TreeData>();
-        Stack<int> splineIndexStack = new Stack<int>();
-        TreeData treeData = new TreeData();
         [SerializeField] private Vector2 lenght = new Vector2(1, 2);
         [SerializeField] private float angleMin;
         [SerializeField] private float angleMax;
         [SerializeField] private float angleYMin;
         [SerializeField] private float angleYMax;
-        private List<List<Vector3>> lineList = new List<List<Vector3>>();
         [SerializeField] private Material treeMaterial;
+        
+        Stack<TreeData> treeStack = new Stack<TreeData>();
+        Stack<int> splineIndexStack = new Stack<int>();
+        private List<List<Vector3>> lineList = new List<List<Vector3>>();
         private GameObject _currentTree;
 
         [Header("Radius")]
@@ -39,21 +40,37 @@ namespace TreeGeneration
         [SerializeField] private int leavesPerBranch = 3;
         List<Transform> _leafList = new List<Transform>();
 
+        public TreeGeneratorData Data;
+        
         void Start()
         {
-            CreateTree(ExpandTreeString(axiom));
-            EnfanteLeafs();
+            /*CreateTree(ExpandTreeString(axiom));
+            EnfanteLeafs();*/
         }
 
+        public void GenerateTree(TreeGeneratorData data, Transform point)
+        {
+            Data = data;
+
+            if (Data == null)
+            {
+                ABPrint.Print("Data is null", ABColor.Red);
+                return;
+            }
+            
+            CreateTree(ExpandTreeString(Data.Axiom), point);
+            EnfanteLeafs();
+        }
+        
         string ExpandTreeString(string tree)
         {
             string expandedTree;
 
-            for (int i = 0; i < iterations; i++)
+            for (int i = 0; i < Data.Iterations; i++)
             {
                 expandedTree = "";
 
-                bool isEnd = i == iterations - 1;
+                bool isEnd = i == Data.Iterations - 1;
 
                 foreach (char c in tree)
                 {
@@ -65,7 +82,7 @@ namespace TreeGeneration
 
                     bool ruleFound = false;
 
-                    foreach (var data in _branchRules)
+                    foreach (var data in Data.BranchRules)
                     {
                         if (data.Rule == c)
                         {
@@ -112,14 +129,14 @@ namespace TreeGeneration
             return "";
         }
         
-        void CreateTree(string tree)
+        void CreateTree(string tree, Transform t)
         {
-            currentRadius = _baseRadius;
+            currentRadius = Data.BaseRadius;
             
             SplineDataStruct splineData = CreateSpline();
             int splineIndex = splineData.Container.Splines.FindIndex(splineData.Spline);
 
-            splineData.Spline.Add(new BezierKnot(transform.position), TangentMode.AutoSmooth);
+            splineData.Spline.Add(new BezierKnot(t.position), TangentMode.AutoSmooth);
             radiusList.Clear();
             radiusList.Add(currentRadius);
             
@@ -128,8 +145,8 @@ namespace TreeGeneration
                 switch (c)
                 {
                     case 'F' :
-                        transform.Translate(Vector3.up * Random.Range(lenght.x, lenght.y));
-                        splineData.Spline.Add(new BezierKnot(transform.position), TangentMode.AutoSmooth);
+                        t.Translate(Vector3.up * Random.Range(Data.Lenght.x, Data.Lenght.y));
+                        splineData.Spline.Add(new BezierKnot(t.position), TangentMode.AutoSmooth);
                         
                         break;
                     case 'B':
@@ -137,8 +154,8 @@ namespace TreeGeneration
                     case '[':
                         treeStack.Push(new TreeData
                         {
-                            Position = transform.position,
-                            Rotation = transform.rotation,
+                            Position = t.position,
+                            Rotation = t.rotation,
                             Radius = currentRadius
                         });
                         splineIndexStack.Push(splineIndex);
@@ -149,10 +166,10 @@ namespace TreeGeneration
                         splineData.Spline = splineData.Container.AddSpline();
                         splineIndex = splineData.Container.Splines.FindIndex(splineData.Spline);
                         
-                        currentRadius *= _radiusRatio;
+                        currentRadius *= Data.RadiusRatio;
                         radiusList.Add(currentRadius);
                         
-                        splineData.Spline.Add(new BezierKnot(transform.position), TangentMode.AutoSmooth);
+                        splineData.Spline.Add(new BezierKnot(t.position), TangentMode.AutoSmooth);
                         splineData.Container.LinkKnots(new SplineKnotIndex(prevSplineIndex, splineCount -1), new SplineKnotIndex(splineIndex, 0));
                         
                         
@@ -160,8 +177,8 @@ namespace TreeGeneration
                     case ']':
                         TreeData data = treeStack.Pop();
                         
-                        transform.position = data.Position;
-                        transform.rotation = data.Rotation;
+                        t.position = data.Position;
+                        t.rotation = data.Rotation;
                         
                         splineIndex = splineIndexStack.Pop();
                         splineData.Spline = splineData.Container.Splines[splineIndex];
@@ -170,15 +187,15 @@ namespace TreeGeneration
                         
                         break;
                     case 'l':
-                        transform.Rotate(Vector3.back, Random.Range(angleMin, angleMax));
-                        transform.Rotate(Vector3.up, Random.Range(angleYMin, angleYMax));
+                        t.Rotate(Vector3.back, Random.Range(Data.AngleMin, Data.AngleMax));
+                        t.Rotate(Vector3.up, Random.Range(Data.AngleYMin, Data.AngleYMax));
                         break;
                     case 'r':
-                        transform.Rotate(Vector3.forward, Random.Range(angleMin, angleMax));
-                        transform.Rotate(Vector3.up, Random.Range(angleYMin, angleYMax));
+                        t.Rotate(Vector3.forward, Random.Range(Data.AngleMin, Data.AngleMax));
+                        t.Rotate(Vector3.up, Random.Range(Data.AngleYMin, Data.AngleYMax));
                         break;
                     case 'L':
-                        CreateLeave();
+                        CreateLeave(t);
                         break;
                 }
             }
@@ -197,14 +214,14 @@ namespace TreeGeneration
             meshFilter.mesh = new Mesh();
             
             MeshRenderer meshRenderer = _currentTree.AddComponent<MeshRenderer>();
-            meshRenderer.material = treeMaterial;
+            meshRenderer.material = Data.TreeMaterial;
             
             SplineContainer container = _currentTree.AddComponent<SplineContainer>();
             container.RemoveSplineAt(0);
             
             CustomExtrudeSpline extrude = _currentTree.AddComponent<CustomExtrudeSpline>();
             extrude.SplineContainer = container;
-            extrude.Material = treeMaterial;
+            extrude.Material = Data.TreeMaterial;
 
             SplineDataStruct data = new SplineDataStruct
             {
@@ -217,21 +234,21 @@ namespace TreeGeneration
         }
         
 
-        private void CreateLeave()
+        private void CreateLeave(Transform t)
         {
-            for (int i = 0; i < leavesPerBranch; i++)
+            for (int i = 0; i < Data.LeavesPerBranch; i++)
             {
                 Vector3 direction = Random.onUnitSphere;
 
                 Quaternion rotation = Quaternion.LookRotation(direction) * Quaternion.Euler(90, 0, 0);
 
-                Vector3 position = transform.position + Random.insideUnitSphere * currentRadius;
+                Vector3 position = t.position + Random.insideUnitSphere * currentRadius;
 
-                GameObject leaf = Instantiate(_leafPrefab, position, rotation);
+                /*GameObject leaf = Instantiate(Data.LeafPrefab, position, rotation);
 
-                leaf.transform.localScale = Vector3.one * leafScale;
+                leaf.transform.localScale = Vector3.one * Data.LeafScale;
                 
-                _leafList.Add(leaf.transform);
+                _leafList.Add(leaf.transform);*/
             }
         }
 
