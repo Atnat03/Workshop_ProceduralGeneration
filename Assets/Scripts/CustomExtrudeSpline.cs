@@ -116,6 +116,8 @@ public class CustomExtrudeSpline : MonoBehaviour
 
         meshFilter.sharedMesh = mesh;
         meshRenderer.material = Material;
+        
+        gameObject.AddComponent<MeshCollider>().sharedMesh = mesh;
     }
 
     private void CreateCap(List<Vector3> vertices, List<int> triangles, int ringStart)

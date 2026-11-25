@@ -2,73 +2,57 @@
 using System.Collections.Generic;
 using DefaultNamespace;
 using MyPrint;
+using TreeGeneration;
 using Unity.Mathematics;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Splines;
+using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 
-namespace TreeGeneration
-{
-    public class TreeGenerator : MonoBehaviour
+    public class TreeGenerator
     {
-        [SerializeField] private string axiom;
-        [SerializeField] private int iterations;
-        [SerializeField] private Vector2 lenght = new Vector2(1, 2);
-        [SerializeField] private float angleMin;
-        [SerializeField] private float angleMax;
-        [SerializeField] private float angleYMin;
-        [SerializeField] private float angleYMax;
-        [SerializeField] private Material treeMaterial;
+        public TreeGenerator(){}
         
+        //Tree creation
         Stack<TreeData> treeStack = new Stack<TreeData>();
         Stack<int> splineIndexStack = new Stack<int>();
         private List<List<Vector3>> lineList = new List<List<Vector3>>();
-        private GameObject _currentTree;
 
-        [Header("Radius")]
-        [SerializeField] private float _baseRadius = 0.5f;
-        [SerializeField, Range(0.1f, 1)] private float _radiusRatio = 0.95f;
+        //Radius
         List<float> radiusList = new List<float>();
         float currentRadius;
         
-        [Header("Rules")] 
-        [SerializeField] private List<BranchRules> _branchRules = new List<BranchRules>(); 
-        
-        [Header("Leaves")]
-        [SerializeField] private GameObject _leafPrefab;
-        [SerializeField] private float leafScale = 0.3f;
-        [SerializeField] private int leavesPerBranch = 3;
+        //Leafs
         List<Transform> _leafList = new List<Transform>();
 
-        public TreeGeneratorData Data;
+        TreeGeneratorData Data;
         
-        void Start()
-        {
-            /*CreateTree(ExpandTreeString(axiom));
-            EnfanteLeafs();*/
-        }
-
-        public void GenerateTree(TreeGeneratorData data, Transform point)
+        public GameObject GenerateTree(TreeGeneratorData data, Transform point, int numberTree)
         {
             Data = data;
-
+            _leafList = new List<Transform>();
+            
             if (Data == null)
             {
                 ABPrint.Print("Data is null", ABColor.Red);
-                return;
+                return null;
             }
             
-            CreateTree(ExpandTreeString(Data.Axiom), point);
-            EnfanteLeafs();
+            GameObject newTree = CreateTree(ExpandTreeString(Data.Axiom), point, numberTree);
+            
+            newTree = EnfanteLeafs(newTree);
+            
+            _leafList.Clear();
+            
+            return newTree;
         }
         
         string ExpandTreeString(string tree)
         {
-            string expandedTree;
-
             for (int i = 0; i < Data.Iterations; i++)
             {
-                expandedTree = "";
+                var expandedTree = "";
 
                 bool isEnd = i == Data.Iterations - 1;
 
@@ -129,14 +113,16 @@ namespace TreeGeneration
             return "";
         }
         
-        void CreateTree(string tree, Transform t)
+        GameObject CreateTree(string tree, Transform t, int numberTree)
         {
             currentRadius = Data.BaseRadius;
             
-            SplineDataStruct splineData = CreateSpline();
+            SplineDataStruct splineData = CreateSpline(numberTree, t.position);
             int splineIndex = splineData.Container.Splines.FindIndex(splineData.Spline);
-
-            splineData.Spline.Add(new BezierKnot(t.position), TangentMode.AutoSmooth);
+            
+            Vector3 localPosition = splineData.Object.transform.InverseTransformPoint(t.position);
+            splineData.Spline.Add(new BezierKnot(localPosition), TangentMode.AutoSmooth);
+            
             radiusList.Clear();
             radiusList.Add(currentRadius);
             
@@ -146,7 +132,10 @@ namespace TreeGeneration
                 {
                     case 'F' :
                         t.Translate(Vector3.up * Random.Range(Data.Lenght.x, Data.Lenght.y));
-                        splineData.Spline.Add(new BezierKnot(t.position), TangentMode.AutoSmooth);
+
+                        localPosition = splineData.Object.transform.InverseTransformPoint(t.position);
+
+                        splineData.Spline.Add(new BezierKnot(localPosition), TangentMode.AutoSmooth);
                         
                         break;
                     case 'B':
@@ -169,9 +158,8 @@ namespace TreeGeneration
                         currentRadius *= Data.RadiusRatio;
                         radiusList.Add(currentRadius);
                         
-                        splineData.Spline.Add(new BezierKnot(t.position), TangentMode.AutoSmooth);
+                        splineData.Spline.Add(new BezierKnot(splineData.Object.transform.InverseTransformPoint(t.position)), TangentMode.AutoSmooth); 
                         splineData.Container.LinkKnots(new SplineKnotIndex(prevSplineIndex, splineCount -1), new SplineKnotIndex(splineIndex, 0));
-                        
                         
                         break;
                     case ']':
@@ -204,22 +192,30 @@ namespace TreeGeneration
             {
                 splineData.Extrude.GenerateMesh(radiusList.ToArray());
             }
+
+            return splineData.Object;
         }
             
-        private SplineDataStruct  CreateSpline()
+        private SplineDataStruct CreateSpline(int numberTree, Vector3 pos)
         {
-            _currentTree = new GameObject("Tree");
-            
-            MeshFilter meshFilter = _currentTree.AddComponent<MeshFilter>();
+            GameObject newSpline = new GameObject("Tree " + numberTree)
+            {
+                transform =
+                {
+                    position = pos
+                }
+            };
+
+            MeshFilter meshFilter = newSpline.AddComponent<MeshFilter>();
             meshFilter.mesh = new Mesh();
             
-            MeshRenderer meshRenderer = _currentTree.AddComponent<MeshRenderer>();
+            MeshRenderer meshRenderer = newSpline.AddComponent<MeshRenderer>();
             meshRenderer.material = Data.TreeMaterial;
             
-            SplineContainer container = _currentTree.AddComponent<SplineContainer>();
+            SplineContainer container = newSpline.AddComponent<SplineContainer>();
             container.RemoveSplineAt(0);
             
-            CustomExtrudeSpline extrude = _currentTree.AddComponent<CustomExtrudeSpline>();
+            CustomExtrudeSpline extrude = newSpline.AddComponent<CustomExtrudeSpline>();
             extrude.SplineContainer = container;
             extrude.Material = Data.TreeMaterial;
 
@@ -227,7 +223,8 @@ namespace TreeGeneration
             {
                 Spline = container.AddSpline(),
                 Container = container,
-                Extrude = extrude
+                Extrude = extrude,
+                Object = newSpline,
             };
             
             return data;
@@ -244,25 +241,23 @@ namespace TreeGeneration
 
                 Vector3 position = t.position + Random.insideUnitSphere * currentRadius;
 
-                /*GameObject leaf = Instantiate(Data.LeafPrefab, position, rotation);
+                GameObject leaf = Object.Instantiate(Data.LeafPrefab, position, rotation);
 
                 leaf.transform.localScale = Vector3.one * Data.LeafScale;
                 
-                _leafList.Add(leaf.transform);*/
+                _leafList.Add(leaf.transform); 
             }
         }
 
-        private void EnfanteLeafs()
+        private GameObject EnfanteLeafs(GameObject tree)
         {
-            if (_currentTree == null) return;
+            if (tree == null) return null;
             
             foreach (var t in _leafList)
             {
-                t.SetParent(_currentTree.transform);
+                t.SetParent(tree.transform);
             }
-
-            _currentTree = null;
+            
+            return tree;
         }
     }
-
-}
