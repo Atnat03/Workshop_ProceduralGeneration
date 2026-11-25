@@ -22,6 +22,7 @@ namespace TreeGeneration
         [SerializeField] private float angleYMax;
         private List<List<Vector3>> lineList = new List<List<Vector3>>();
         [SerializeField] private Material treeMaterial;
+        private GameObject _currentTree;
 
         [Header("Radius")]
         [SerializeField] private float _baseRadius = 0.5f;
@@ -36,12 +37,13 @@ namespace TreeGeneration
         [SerializeField] private GameObject _leafPrefab;
         [SerializeField] private float leafScale = 0.3f;
         [SerializeField] private int leavesPerBranch = 3;
-        
+        List<Transform> _leafList = new List<Transform>();
+
         void Start()
         {
             CreateTree(ExpandTreeString(axiom));
+            EnfanteLeafs();
         }
-        
 
         string ExpandTreeString(string tree)
         {
@@ -189,19 +191,18 @@ namespace TreeGeneration
             
         private SplineDataStruct  CreateSpline()
         {
-                    
-            GameObject treeObject = new GameObject("Tree");
+            _currentTree = new GameObject("Tree");
             
-            MeshFilter meshFilter = treeObject.AddComponent<MeshFilter>();
+            MeshFilter meshFilter = _currentTree.AddComponent<MeshFilter>();
             meshFilter.mesh = new Mesh();
             
-            MeshRenderer meshRenderer = treeObject.AddComponent<MeshRenderer>();
+            MeshRenderer meshRenderer = _currentTree.AddComponent<MeshRenderer>();
             meshRenderer.material = treeMaterial;
             
-            SplineContainer container = treeObject.AddComponent<SplineContainer>();
+            SplineContainer container = _currentTree.AddComponent<SplineContainer>();
             container.RemoveSplineAt(0);
             
-            CustomExtrudeSpline extrude = treeObject.AddComponent<CustomExtrudeSpline>();
+            CustomExtrudeSpline extrude = _currentTree.AddComponent<CustomExtrudeSpline>();
             extrude.SplineContainer = container;
             extrude.Material = treeMaterial;
 
@@ -229,9 +230,22 @@ namespace TreeGeneration
                 GameObject leaf = Instantiate(_leafPrefab, position, rotation);
 
                 leaf.transform.localScale = Vector3.one * leafScale;
+                
+                _leafList.Add(leaf.transform);
             }
         }
 
+        private void EnfanteLeafs()
+        {
+            if (_currentTree == null) return;
+            
+            foreach (var t in _leafList)
+            {
+                t.SetParent(_currentTree.transform);
+            }
+
+            _currentTree = null;
+        }
     }
 
 }
