@@ -24,9 +24,6 @@ MonoBehaviour:
   RadiusRatio: 0.72
   LeafPrefabList:
   - {fileID: 3868080352369227895, guid: 9a18fded79c867c4398e705dd6e72b07, type: 3}
-  - {fileID: 3868080352369227895, guid: bba2dac71179c1c4b913d9d0c4350450, type: 3}
-  - {fileID: 3868080352369227895, guid: 60b26abe5fac8e249a3cc191097fa5bd, type: 3}
-  - {fileID: 3868080352369227895, guid: 7cafa2aa7a6487e4296bea31f4eab108, type: 3}
   LeafScale: 0.3
   LeavesPerBranch: 8
   LeafSpread: 0.6
@@ -35,9 +32,11 @@ MonoBehaviour:
   BranchRules:
   - Rule: 66
     BranchRulesProbabilityList:
-    - Rule: 'FF[lFgFgB]y[lFgFgB]y[wFB]'
-      Probability: 60
-    - Rule: 'FF[lFgFgB]y[wFB]'
+    - Rule: 'F[lFwFB]y[lFwFB]y[wFB]'
+      Probability: 50
+    - Rule: 'F[lFwFB]y[lFwFB]'
       Probability: 30
-    - Rule: 'FF[wFB]'
-      Probability: 10
+    - Rule: 'F[lFwFB]y[wFFB]'
+      Probability: 15
+    - Rule: FwF
+      Probability: 5

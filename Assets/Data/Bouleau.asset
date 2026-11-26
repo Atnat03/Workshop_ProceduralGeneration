@@ -24,7 +24,6 @@ MonoBehaviour:
   RadiusRatio: 0.72
   LeafPrefabList:
   - {fileID: 3868080352369227895, guid: 9a18fded79c867c4398e705dd6e72b07, type: 3}
-  - {fileID: 3868080352369227895, guid: 7cafa2aa7a6487e4296bea31f4eab108, type: 3}
   LeafScale: 0.3
   LeavesPerBranch: 5
   LeafSpread: 0.4

@@ -543,7 +543,8 @@ namespace DefaultNamespace
             
             if(!IsMultipleLeafType)
                 LeafPrefabList.Add(LeafPrefabSolo);
-            data.LeafPrefabList = LeafPrefabList;
+            
+            data.LeafPrefabList = new List<GameObject>(LeafPrefabList);
             
             data.LeafScale = LeafScale;
             data.LeavesPerBranch = LeavesPerBranch;
