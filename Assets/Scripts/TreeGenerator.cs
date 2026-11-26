@@ -185,6 +185,20 @@ using Random = UnityEngine.Random;
                     case 'L':
                         CreateLeave(t);
                         break;
+                    case 'y':
+                        t.Rotate(Vector3.up, Random.Range(Data.AngleYMin, Data.AngleYMax));
+                        break;
+                    case 'w':
+                        t.Rotate(Random.Range(-Data.Wobble, Data.Wobble), 0f, Random.Range(-Data.Wobble, Data.Wobble));
+                        break;
+                    case 'g':
+                    {
+                        Vector3 axis = Vector3.Cross(t.up, Vector3.down);
+                        float s = axis.magnitude;
+                        if (s > 0.001f)
+                            t.rotation = Quaternion.AngleAxis(Data.Tropism * s, axis / s) * t.rotation;
+                        break;
+                    }
                 }
             }
 
@@ -239,9 +253,10 @@ using Random = UnityEngine.Random;
 
                 Quaternion rotation = Quaternion.LookRotation(direction) * Quaternion.Euler(90, 0, 0);
 
-                Vector3 position = t.position + Random.insideUnitSphere * currentRadius;
-
-                GameObject leaf = Object.Instantiate(Data.LeafPrefab, position, rotation);
+                Vector3 position = t.position + Random.insideUnitSphere * Data.LeafSpread;
+                
+                GameObject prefabLeaf = Data.LeafPrefabList[Random.Range(0, Data.LeafPrefabList.Count)];
+                GameObject leaf = Object.Instantiate(prefabLeaf, position, rotation);
 
                 leaf.transform.localScale = Vector3.one * Data.LeafScale;
                 

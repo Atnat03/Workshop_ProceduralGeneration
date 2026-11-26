@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c67b93686a8b425ba0c2eae0fa1661b1, type: 3}
+  m_Name: DeadTree
+  m_EditorClassIdentifier: Assembly-CSharp::DefaultNamespace.TreeGeneratorData
+  Axiom: FFwB
+  Iterations: 6
+  Lenght: {x: 0.35, y: 0.8}
+  AngleMin: 35
+  AngleMax: 70
+  AngleYMin: 100
+  AngleYMax: 170
+  TreeMaterial: {fileID: 2100000, guid: 8a5858cba668a024ab1618c5ded6329d, type: 2}
+  BaseRadius: 0.3
+  RadiusRatio: 0.68
+  LeafPrefabList:
+  - {fileID: 3868080352369227895, guid: 9a18fded79c867c4398e705dd6e72b07, type: 3}
+  LeafScale: 0.3
+  LeavesPerBranch: 0
+  LeafSpread: 0
+  Wobble: 25
+  Tropism: 0
+  BranchRules:
+  - Rule: 66
+    BranchRulesProbabilityList:
+    - Rule: 'F[lFwFB]y[lFwB]y[wFwB]'
+      Probability: 45
+    - Rule: 'F[lFwFwB]y[wFwB]'
+      Probability: 30
+    - Rule: FwF
+      Probability: 25
